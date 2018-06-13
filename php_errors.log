@@ -1,0 +1,4 @@
+[13-Jun-2018 04:42:53 UTC] PHP Fatal error:  Uncaught Error: Undefined constant 'n' in C:\inetpub\wwwroot\ttp\timetrade.php:46
+Stack trace:
+#0 {main}
+  thrown in C:\inetpub\wwwroot\ttp\timetrade.php on line 46
