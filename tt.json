@@ -1,5 +1,8 @@
 {
-    "cookie1": "",
-    "cookie2": "",
-    "exp": 1528864130
+    "jcryan@sixbitsoftware.com": {
+        "id": 1,
+        "cookie1": " JSESSIONID=0000YyXHDAIazSgH2tENQJV6_fx:-1",
+        "cookie2": " AWSELB=1D2DE7A4090ECEB41C6DB7D66E7170BA76835FC9F704F5C8F909F1484F771B4419F3A7ADC306A42081679C77644D8C9ADA803284D52656C756DB56FAE971CC530F81BA3F",
+        "exp": 1528967144
+    }
 }

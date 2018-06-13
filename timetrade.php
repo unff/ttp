@@ -1,48 +1,100 @@
 <?php
-// pull password out of $_GET (base64 encoded?)
-$configFile = "./tt.json";
-$id = 0;
+    // Set CORS header
+    header('Access-Control-Allow-Origin: *'); 
+    // pull password out of $_GET (base64 encoded?)
+    $pw = "Idiot3@2";
+    $email="jcryan@sixbitsoftware.com";
+    // TODO (BIG): store configs by email address.
+    $configFile = "./tt.json";
+    $apiUrl = "https://www.timetrade.com/td/json/connectorApi";
+    $config[$email] = (object)array(
+        'id' => 0,
+        'cookie1' => '',
+        'cookie2' => '',
+        'exp' => time()
+    );
     // Make sure settings file exists
     touch('./tt.json');
     if(!filesize($configFile)) {
         echo 'empty';
         // file is empty, write defaults to config file
-        $config = (object)array(
-            'cookie1' => '',
-            'cookie2' => '',
-            'exp' => time()
-        );
         $cFile = fopen($configFile, "w");
         fwrite($cFile, json_encode($config, JSON_PRETTY_PRINT));
         fclose($cFile);
-    } 
-    // Set CORS header
-    header('Access-Control-Allow-Origin: *'); 
-    // Load JSON data
+    }
+    // Load JSON data from config file
     $json_data = file_get_contents($configFile);
-    $json = json_decode($json_data);
+    $config = json_decode($json_data);
     // Check exp for freshness
-    var_dump($json);
-    if ($json->exp < time()) {
-        //expiration has passed. generate new credentials.
-        echo 'exp < now';
-        //call for new salt
-        //call for new token
-        //calculate exp
+    if ($config->$email->exp <= time()) {
+        // freshness fail. expiration has passed. generate new credentials.
+        // call for new salt
+        $body = (object)array(
+            
+            "id" => ++$config->$email->id,
+            "method" => "connectorApi.initAccess",
+            "params" => array($email)
+        );
+        $opts = array(
+            "ssl" => [
+                "verify_peer"=>false,
+                "verify_peer_name"=>false,
+            ],
+            'http'=>array(
+                'header'=>'Content-Type: text/plain',
+                'method'=>'POST',
+                'content'=>json_encode($body)
+            )
+        );
+        $context = stream_context_create($opts);
+        $fp =  file_get_contents($apiUrl, false, $context);
+        $data = json_decode($fp);
+        // got salt. call for new token
+        $body = (object)array(
+            "id"=> ++$config->$email->id,
+            "method"=> "connectorApi.login",
+            "params"=> array(
+                $email,makeHash($pw, $data->result->authToken)
+            )
+        );
+        $opts['http']['content'] = json_encode($body);
+        $context = stream_context_create($opts);
+        $fp = file_get_contents($apiUrl, false, $context);
+        $data = json_decode($fp);
+        $arr = array(); // need a blank array to push into
+        foreach ($http_response_header as $value) {
+            $t = explode(":",$value,2);
+            if ($t[0] == "Set-Cookie") {
+                array_push($arr, $t[1]);
+            }
+            unset($arr[0]);
+        }
+        foreach ($arr as $key=>$value) {
+            $cookie = explode(";", $value, 2);
+            $arr[$key] = $cookie[0];
+        }
+        $config->$email->id = 1;
+        $config->$email->cookie1 = $arr[1]; // it's 1 and 2 since we unset $arr[0]
+        $config->$email->cookie2 = $arr[2];
+        // calculate exp
+        $config->$email->exp = time()+(43000);
         //save token and exp to config file
-        // are curl calls sync or async?
-    } 
+        $cFile = fopen($configFile, "w");
+        fwrite($cFile, json_encode($config, JSON_PRETTY_PRINT));
+        fclose($cFile);
+        // are curl calls sync or async? sync, but not used here.
+    } else {
+        echo $config->$email->exp." vs ".time()."\r\n";
+    }
 
     // Get appt list
+
     // Return JSON object
-    $id = 0;
-    $pw = "Idiot3@2";
-    $salt = "@n6`pfvicgyre2Oc";
     
     function makeHash($pw, $salt) {
         $hash = base64_encode(MD5($pw, true));
         return base64_encode(MD5($hash.$salt, true));
     }
-    echo "\r\n";
-    echo makeHash($pw, $salt);
+
+
 ?>
