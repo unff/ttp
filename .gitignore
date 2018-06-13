@@ -24,6 +24,7 @@ modules/.vscode
 # Ignore npm/yarn debug log
 npm-debug.log
 yarn-error.log
+php_errors.log
 
 # build-analytics
 .build-analytics
