@@ -30,7 +30,6 @@
         // freshness fail. expiration has passed. generate new credentials.
         // call for new salt
         $body = (object)array(
-            
             "id" => ++$config->$email->id,
             "method" => "connectorApi.initAccess",
             "params" => array($email)
@@ -82,7 +81,7 @@
         $cFile = fopen($configFile, "w");
         fwrite($cFile, json_encode($config, JSON_PRETTY_PRINT));
         fclose($cFile);
-        // are curl calls sync or async? sync, but not used here.
+        // are curl calls sync or async? sync, but not using curl here.
     } else {
         echo $config->$email->exp." vs ".time()."\r\n";
     }
