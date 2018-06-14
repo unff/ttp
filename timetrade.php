@@ -87,7 +87,23 @@
     }
 
     // Get appt list
-
+    $body = (object)array(
+        "id" => ++$config->$email->id,
+        "method" => "connectorApi.getAppointments",
+        "params" => array($email)
+    );
+    // modify  gmdate("Y-m-d\TH:i:s\Z"); 
+    $opts = array(
+        "ssl" => [
+            "verify_peer"=>false,
+            "verify_peer_name"=>false,
+        ],
+        'http'=>array(
+            'header'=>'Content-Type: text/plain',
+            'method'=>'POST',
+            'content'=>json_encode($body)
+        )
+    );
     // Return JSON object
     
     function makeHash($pw, $salt) {
