@@ -7,7 +7,7 @@
     // TODO (BIG): store configs by email address.
     $configFile = "./tt.json";
     $apiUrl = "https://www.timetrade.com/td/json/connectorApi";
-    $config->$email = (object)array(
+    $config[$email] = (object)array(
         'id' => 0,
         'cookie1' => '',
         'cookie2' => '',
@@ -62,15 +62,6 @@
         $context = stream_context_create($opts);
         $fp = file_get_contents($apiUrl, false, $context);
         $data = json_decode($fp);
-        // Check for valid login
-        if($data->result == false){
-            echo json_encode(array((object)array(
-                'time'=>'',
-                'questionResponse'=>'',
-                'calendarEventSubject'=>'invalid login'
-            )));
-            exit;
-        }
         $arr = array(); // need a blank array to push into
         foreach ($http_response_header as $value) {
             $t = explode(":",$value,2);
@@ -120,13 +111,14 @@
     $context = stream_context_create($opts);
     $fp = file_get_contents($apiUrl, false, $context);
     $data = json_decode($fp);
-        //print_r($data);
-    
+        // print_r($data);
+    if (is_null($data->result)) {
+        $data->result = json_encode((object)array());
+    }
     // Check for "Missing User Credentials", blank the token and 302 with query string
     //if ($data->error->code == 4901) {
     if (property_exists($data, "error")) {  //assume 4901 and reset
-        //echo "ding: ".$email;
-        $config->$email = (object)array(
+        $config[$email] = (object)array(
             'id' => 0,
             'cookie1' => '',
             'cookie2' => '',
@@ -135,25 +127,12 @@
         $cFile = fopen($configFile, "w");
         fwrite($cFile, json_encode($config, JSON_PRETTY_PRINT));
         fclose($cFile);
-        //echo "dong";
         // stored credentials are now blank. Redirect to ourself to generate new.
-        header('Location: '.$_SERVER["REQUEST_URI"], true, 302);
+        header('Location: '.$apiUrl.'?'.$_SERVER['QUERY_STRING'], true, 302);
         exit;  //kill program
     }
-    if (is_null($data->result)) {
-        $data->result = (object)array(
-            'time'=>'',
-            'questionResponse'=>'',
-            'calendarEventSubject'=>'no appointments today'
-        );
-    }
-    //update config after to persist id counts
-    $cFile = fopen($configFile, "w");
-    fwrite($cFile, json_encode($config, JSON_PRETTY_PRINT));
-    fclose($cFile);
-        
     // Return JSON object
-    echo json_encode(array($data->result));
+    echo $data->result;
 
     // functions
     function makeHash($pw, $salt) {
