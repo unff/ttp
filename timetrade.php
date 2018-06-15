@@ -7,6 +7,7 @@
     // TODO (BIG): store configs by email address.
     $configFile = "./tt.json";
     $apiUrl = "https://www.timetrade.com/td/json/connectorApi";
+    $config = new stdClass();
     $config->$email = (object)array(
         'id' => 0,
         'cookie1' => '',
@@ -101,7 +102,7 @@
     $body = (object)array(
         "id" => ++$config->$email->id,
         "method" => "connectorApi.getAppointments",
-        "params" => array(date("Y-m-d\T00:00:00\Z"), date("Y-m-d\T11:59:59\Z"))
+        "params" => array(date("Y-m-d\T00:00:00\Z"), NULL)
     );
     $opts = array(
         "ssl" => [
@@ -153,7 +154,7 @@
     fclose($cFile);
         
     // Return JSON object
-    echo json_encode(array($data->result));
+    echo json_encode($data->result);
 
     // functions
     function makeHash($pw, $salt) {
